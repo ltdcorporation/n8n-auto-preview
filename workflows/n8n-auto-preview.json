@@ -1,5 +1,5 @@
 {
-  "name": "n8n-auto-preview-hourly",
+  "name": "n8n-auto-preview-every-2-min",
   "nodes": [
     {
       "parameters": {
@@ -7,13 +7,13 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 * * * *"
+              "expression": "*/2 * * * *"
             }
           ]
         }
       },
       "id": "b1c80508-6f03-4897-a8f9-ec9f4346118c",
-      "name": "Hourly Trigger",
+      "name": "Every 2 Min Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -37,7 +37,7 @@
   ],
   "pinData": {},
   "connections": {
-    "Hourly Trigger": {
+    "Every 2 Min Trigger": {
       "main": [
         [
           {
@@ -57,6 +57,6 @@
   "meta": {
     "instanceId": "n8n-auto-preview-template"
   },
-  "id": "n8n-auto-preview-hourly",
+  "id": "n8n-auto-preview-every-2-min",
   "tags": []
 }

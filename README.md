@@ -1,7 +1,7 @@
 # n8n-auto-preview
 
 Workflow otomatis n8n untuk:
-- jalan tiap jam (`0 * * * *`)
+- jalan tiap 2 menit (`*/2 * * * *`)
 - ambil 4 media random dari stok lokal
 - prioritas campuran gambar + video (kalau keduanya tersedia)
 - fallback tetap jalan kalau salah satu tipe habis
