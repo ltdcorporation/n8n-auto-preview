@@ -113,6 +113,23 @@ Jalankan langsung engine:
 node scripts/run_job.mjs
 ```
 
+## Wizard Isi Bank (interaktif)
+
+Biar ga ngedit JSON manual, pake wizard:
+
+```bash
+node scripts/bank_wizard.mjs
+```
+
+Wizard bakal nanya mode:
+- isi/tambah caption
+- isi/tambah hashtag
+- atau dua-duanya
+
+Catatan:
+- ga perlu restart n8n setelah update bank
+- file non-media tetap ga bakal ikut karena sistem pake whitelist ekstensi
+
 ## Troubleshoot Cepat
 
 - Cek log service:
