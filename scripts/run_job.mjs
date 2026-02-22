@@ -5,8 +5,34 @@ import { constants as fsConstants, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
-const VIDEO_EXTENSIONS = new Set(['.mp4', '.mov']);
+const IMAGE_EXTENSIONS = new Set([
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.webp',
+  '.gif',
+  '.bmp',
+  '.tif',
+  '.tiff',
+  '.avif',
+  '.heic',
+  '.heif',
+]);
+const VIDEO_EXTENSIONS = new Set([
+  '.mp4',
+  '.mov',
+  '.m4v',
+  '.webm',
+  '.mkv',
+  '.avi',
+  '.wmv',
+  '.flv',
+  '.mpeg',
+  '.mpg',
+  '.3gp',
+  '.mts',
+  '.m2ts',
+]);
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const defaultRoot = path.resolve(scriptDir, '..');

@@ -32,8 +32,10 @@ Workflow otomatis n8n untuk:
 
 ## Rule Workflow
 
-- Ekstensi gambar valid: `jpg`, `jpeg`, `png`, `webp`
-- Ekstensi video valid: `mp4`, `mov`
+- Ekstensi gambar valid:
+`jpg`, `jpeg`, `png`, `webp`, `gif`, `bmp`, `tif`, `tiff`, `avif`, `heic`, `heif`
+- Ekstensi video valid:
+`mp4`, `mov`, `m4v`, `webm`, `mkv`, `avi`, `wmv`, `flv`, `mpeg`, `mpg`, `3gp`, `mts`, `m2ts`
 - Kalau total media valid `< 4`: job stop (skip)
 - Kalau dua tipe ada: usahakan campur minimal 1 gambar + 1 video
 - Kalau salah satu tipe habis: tetap jalan pakai tipe yang masih tersedia
