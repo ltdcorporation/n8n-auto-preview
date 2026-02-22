@@ -1,0 +1,62 @@
+{
+  "name": "n8n-auto-preview-hourly",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 * * * *"
+            }
+          ]
+        }
+      },
+      "id": "b1c80508-6f03-4897-a8f9-ec9f4346118c",
+      "name": "Hourly Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "AUTO_PREVIEW_ROOT=/home/ubuntu/n8n-auto-preview node /home/ubuntu/n8n-auto-preview/scripts/run_job.mjs"
+      },
+      "id": "784d4dad-a54f-4c30-bf37-3c677ca7476e",
+      "name": "Run Job Engine",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        520,
+        300
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Hourly Trigger": {
+      "main": [
+        [
+          {
+            "node": "Run Job Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1137a6cf-7531-4ae1-8628-c102ec23331c",
+  "meta": {
+    "instanceId": "n8n-auto-preview-template"
+  },
+  "id": "n8n-auto-preview-hourly",
+  "tags": []
+}

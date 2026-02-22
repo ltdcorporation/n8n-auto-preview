@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "text": "Pilih vibe favorit lo hari ini, stok ready dan tinggal gas.",
+    "used": false,
+    "used_at": null
+  },
+  {
+    "id": 2,
+    "text": "Konten fresh udah siap, tinggal pilih yang paling nyantol buat audience lo.",
+    "used": false,
+    "used_at": null
+  },
+  {
+    "id": 3,
+    "text": "Biar feed lo tetap hidup, ini materi promo yang bisa langsung lo pakai.",
+    "used": false,
+    "used_at": null
+  },
+  {
+    "id": 4,
+    "text": "Udah siap publish? Ambil paket preview ini dan lanjut eksekusi sekarang.",
+    "used": false,
+    "used_at": null
+  }
+]

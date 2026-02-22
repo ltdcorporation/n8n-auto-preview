@@ -1,0 +1,15 @@
+# Runtime media
+source_media/images/*
+!source_media/images/.gitkeep
+source_media/videos/*
+!source_media/videos/.gitkeep
+output_jobs/*
+!output_jobs/.gitkeep
+
+# Runtime lock
+data/.run.lock
+
+# Node/NPM logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
