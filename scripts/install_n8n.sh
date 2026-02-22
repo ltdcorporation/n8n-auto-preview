@@ -9,7 +9,7 @@ fi
 export DEBIAN_FRONTEND=noninteractive
 
 apt-get update
-apt-get install -y curl ca-certificates gnupg
+apt-get install -y curl ca-certificates gnupg ffmpeg
 
 if ! command -v node >/dev/null 2>&1 || ! node -v | grep -qE '^v20\.|^v22\.'; then
   curl -fsSL https://deb.nodesource.com/setup_20.x | bash -

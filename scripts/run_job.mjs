@@ -2,6 +2,7 @@
 
 import fs from 'node:fs/promises';
 import { constants as fsConstants, existsSync } from 'node:fs';
+import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -45,6 +46,8 @@ const dataDir = path.join(rootDir, 'data');
 const captionsPath = path.join(dataDir, 'captions.json');
 const hashtagsPath = path.join(dataDir, 'hashtags.json');
 const lockFilePath = path.join(dataDir, '.run.lock');
+const DEFAULT_VIDEO_MAX_SECONDS = 30;
+const videoMaxSeconds = resolveVideoMaxSeconds();
 
 function log(message) {
   const ts = new Date().toISOString();
@@ -53,6 +56,50 @@ function log(message) {
 
 function randomIntInclusive(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function resolveVideoMaxSeconds() {
+  const raw = process.env.AUTO_PREVIEW_VIDEO_MAX_SECONDS;
+  if (!raw) {
+    return DEFAULT_VIDEO_MAX_SECONDS;
+  }
+
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`AUTO_PREVIEW_VIDEO_MAX_SECONDS must be a positive integer. Received: "${raw}".`);
+  }
+
+  return parsed;
+}
+
+function runProcess(command, args) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      stdio: ['ignore', 'ignore', 'pipe'],
+    });
+
+    let stderr = '';
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk;
+    });
+
+    child.on('error', (error) => {
+      reject(error);
+    });
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+        return;
+      }
+
+      const message = stderr.trim()
+        ? `${command} exited with code ${code}: ${stderr.trim()}`
+        : `${command} exited with code ${code}.`;
+      reject(new Error(message));
+    });
+  });
 }
 
 function pickRandomItems(items, count) {
@@ -360,6 +407,46 @@ async function moveFileSafe(sourcePath, destinationPath) {
   }
 }
 
+async function ensureFfmpegAvailable() {
+  try {
+    await runProcess('ffmpeg', ['-hide_banner', '-version']);
+  } catch (error) {
+    throw new Error(
+      `ffmpeg is required to trim videos before output. Original error: ${error.message}`,
+    );
+  }
+}
+
+async function trimVideoAndMove(sourcePath, destinationPath, maxSeconds) {
+  const parsed = path.parse(destinationPath);
+  const tempDestinationPath = path.join(parsed.dir, `${parsed.name}.tmp${parsed.ext}`);
+  await fs.rm(tempDestinationPath, { force: true });
+
+  try {
+    await runProcess('ffmpeg', [
+      '-hide_banner',
+      '-loglevel',
+      'error',
+      '-y',
+      '-i',
+      sourcePath,
+      '-t',
+      String(maxSeconds),
+      '-c',
+      'copy',
+      tempDestinationPath,
+    ]);
+
+    await fs.rename(tempDestinationPath, destinationPath);
+    await fs.unlink(sourcePath);
+  } catch (error) {
+    await fs.rm(tempDestinationPath, { force: true });
+    throw new Error(
+      `Failed to trim video "${sourcePath}" to ${maxSeconds}s. ${error.message}`,
+    );
+  }
+}
+
 async function run() {
   await ensureDirectories();
 
@@ -383,9 +470,14 @@ async function run() {
       return;
     }
 
+    if (composition.videos > 0) {
+      await ensureFfmpegAvailable();
+    }
+
     const selectedImages = pickRandomItems(images, composition.images);
     const selectedVideos = pickRandomItems(videos, composition.videos);
     const selectedMedia = [...selectedImages, ...selectedVideos];
+    const selectedVideoSet = new Set(selectedVideos);
 
     const captionsRaw = await readJsonFile(captionsPath);
     const normalizedCaptions = normalizeCaptionEntries(captionsRaw);
@@ -400,6 +492,11 @@ async function run() {
 
     for (const sourcePath of selectedMedia) {
       const destinationPath = await uniqueFilePath(jobDir, path.basename(sourcePath));
+      if (selectedVideoSet.has(sourcePath)) {
+        await trimVideoAndMove(sourcePath, destinationPath, videoMaxSeconds);
+        continue;
+      }
+
       await moveFileSafe(sourcePath, destinationPath);
     }
 
@@ -410,7 +507,7 @@ async function run() {
     await writeJsonFile(captionsPath, nextCaptions);
 
     log(
-      `Run success: ${selectedMedia.length} media moved to ${jobDir}. images=${composition.images}, videos=${composition.videos}, hashtags=${selectedHashtags.length}.`,
+      `Run success: ${selectedMedia.length} media moved to ${jobDir}. images=${composition.images}, videos=${composition.videos}, hashtags=${selectedHashtags.length}, video_max_seconds=${videoMaxSeconds}.`,
     );
   } finally {
     await releaseLock();

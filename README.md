@@ -5,6 +5,7 @@ Workflow otomatis n8n untuk:
 - ambil 4 media random dari stok lokal
 - prioritas campuran gambar + video (kalau keduanya tersedia)
 - fallback tetap jalan kalau salah satu tipe habis
+- video output dipangkas maksimal 30 detik
 - generate `caption.txt` (caption + hashtag)
 - output ke subfolder job dengan timestamp WIB humanize
 - lock anti tabrakan: kalau run sebelumnya masih jalan, run baru di-skip
@@ -40,9 +41,11 @@ Workflow otomatis n8n untuk:
 - Kalau dua tipe ada: usahakan campur minimal 1 gambar + 1 video
 - Kalau salah satu tipe habis: tetap jalan pakai tipe yang masih tersedia
 - Media terpilih dipindah dari `source_media/*` ke `output_jobs/job_*`
+- Media video yang kepilih dipotong jadi maksimal 30 detik (pakai `ffmpeg`)
 - Caption diambil random non-repeat dari `captions.json`
 - Kalau semua caption sudah `used=true`, auto reset ke `false`
 - Hashtag diambil random `3-5` dari `hashtags.json` (boleh repeat)
+- Override durasi video bisa pakai env `AUTO_PREVIEW_VIDEO_MAX_SECONDS` (default `30`)
 
 ## Format Output
 
@@ -84,6 +87,8 @@ bash scripts/bootstrap.sh
 ```bash
 sudo bash scripts/install_n8n.sh
 ```
+
+`install_n8n.sh` juga akan install `ffmpeg` karena engine butuh ini buat trim video.
 
 4. Pasang service systemd:
 
