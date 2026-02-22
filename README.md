@@ -126,6 +126,10 @@ Wizard bakal nanya mode:
 - isi/tambah hashtag
 - atau dua-duanya
 
+Di mode caption/hashtag, lu juga bisa:
+- edit by nomor
+- hapus by nomor
+
 Catatan:
 - ga perlu restart n8n setelah update bank
 - file non-media tetap ga bakal ikut karena sistem pake whitelist ekstensi

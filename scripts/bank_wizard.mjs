@@ -114,6 +114,125 @@ async function askChoice(rl, prompt, validChoices) {
   }
 }
 
+async function askIndex(rl, prompt, max) {
+  while (true) {
+    const answer = (await rl.question(prompt)).trim();
+    if (!answer) return null;
+
+    const value = Number(answer);
+    if (Number.isInteger(value) && value >= 1 && value <= max) {
+      return value - 1;
+    }
+
+    console.log(`Nomor ga valid. Masukin angka 1-${max} atau Enter kosong buat batal.`);
+  }
+}
+
+function truncateText(text, max = 100) {
+  const raw = String(text ?? '').trim();
+  if (raw.length <= max) return raw;
+  return `${raw.slice(0, max - 3)}...`;
+}
+
+function reindexCaptions(captions) {
+  return captions.map((entry, index) => ({ ...entry, id: index + 1 }));
+}
+
+async function manageCaptions(rl, currentCaptions) {
+  let captions = reindexCaptions([...currentCaptions]);
+
+  while (captions.length > 0) {
+    console.log('\nCaption yang ada sekarang:');
+    captions.forEach((entry, index) => {
+      const usage = entry.used ? 'used' : 'fresh';
+      console.log(`${index + 1}. ${truncateText(entry.text)} [${usage}]`);
+    });
+
+    console.log('\nMenu caption:');
+    console.log('1) Edit caption by nomor');
+    console.log('2) Hapus caption by nomor');
+    console.log('3) Lanjut');
+    const action = await askChoice(rl, 'Pilih [1-3]: ', ['1', '2', '3']);
+    if (action === '3') break;
+
+    const index = await askIndex(
+      rl,
+      `Nomor caption (1-${captions.length}, Enter kosong buat batal): `,
+      captions.length,
+    );
+    if (index === null) continue;
+
+    if (action === '1') {
+      const current = captions[index];
+      const replacement = (await rl.question(`Caption baru untuk #${index + 1} (Enter kosong batal): `)).trim();
+      if (!replacement) {
+        console.log('Edit dibatalin.');
+        continue;
+      }
+      captions[index] = { ...current, text: replacement };
+      console.log(`Caption #${index + 1} diupdate.`);
+      continue;
+    }
+
+    const removed = captions.splice(index, 1)[0];
+    captions = reindexCaptions(captions);
+    console.log(`Caption #${index + 1} dihapus: "${truncateText(removed.text, 60)}"`);
+  }
+
+  return captions;
+}
+
+async function manageHashtags(rl, currentHashtags) {
+  const hashtags = [...currentHashtags];
+
+  while (hashtags.length > 0) {
+    console.log('\nHashtag yang ada sekarang:');
+    hashtags.forEach((tag, index) => {
+      console.log(`${index + 1}. ${tag}`);
+    });
+
+    console.log('\nMenu hashtag:');
+    console.log('1) Edit hashtag by nomor');
+    console.log('2) Hapus hashtag by nomor');
+    console.log('3) Lanjut');
+    const action = await askChoice(rl, 'Pilih [1-3]: ', ['1', '2', '3']);
+    if (action === '3') break;
+
+    const index = await askIndex(
+      rl,
+      `Nomor hashtag (1-${hashtags.length}, Enter kosong buat batal): `,
+      hashtags.length,
+    );
+    if (index === null) continue;
+
+    if (action === '1') {
+      const replacementRaw = await rl.question(`Hashtag baru untuk #${index + 1} (Enter kosong batal): `);
+      const replacement = normalizeHashtag(replacementRaw);
+      if (!replacement) {
+        console.log('Edit dibatalin.');
+        continue;
+      }
+
+      const duplicateIndex = hashtags.findIndex(
+        (tag, tagIndex) => tagIndex !== index && tag.toLowerCase() === replacement.toLowerCase(),
+      );
+      if (duplicateIndex >= 0) {
+        console.log(`${replacement} udah ada di nomor ${duplicateIndex + 1}.`);
+        continue;
+      }
+
+      hashtags[index] = replacement;
+      console.log(`Hashtag #${index + 1} diupdate jadi ${replacement}.`);
+      continue;
+    }
+
+    const removed = hashtags.splice(index, 1)[0];
+    console.log(`Hashtag #${index + 1} dihapus: ${removed}`);
+  }
+
+  return hashtags;
+}
+
 async function handleCaptions(rl) {
   const existingRaw = await readJson(captionsPath, []);
   let captions = normalizeCaptions(existingRaw);
@@ -132,6 +251,13 @@ async function handleCaptions(rl) {
     );
     if (resetUsage) {
       captions = captions.map((entry) => ({ ...entry, used: false, used_at: null }));
+    }
+
+    const manageOld = isYes(
+      await rl.question('Mau edit/hapus caption lama by nomor dulu? (y/N): '),
+    );
+    if (manageOld) {
+      captions = await manageCaptions(rl, captions);
     }
   }
 
@@ -178,6 +304,13 @@ async function handleHashtags(rl) {
   );
   if (replaceAll) {
     hashtags = [];
+  } else if (hashtags.length > 0) {
+    const manageOld = isYes(
+      await rl.question('Mau edit/hapus hashtag lama by nomor dulu? (y/N): '),
+    );
+    if (manageOld) {
+      hashtags = await manageHashtags(rl, hashtags);
+    }
   }
 
   console.log('Masukin hashtag satu-satu. Boleh pake # atau engga. Enter kosong buat selesai.');
